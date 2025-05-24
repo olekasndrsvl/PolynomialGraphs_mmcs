@@ -1,0 +1,64 @@
+<div class="container">
+  <h1>Построитель полиномов</h1>
+
+  <%= form_with id: "polynomial-form" do |form| %>
+    <div class="input-group">
+      <label>Коэффициенты (через запятую):</label>
+      <input type="text" name="coefficients" placeholder="Пример: 1,-2,3" required>
+    </div>
+    <button type="submit">Построить график</button>
+  <% end %>
+
+  <div class="chart-container">
+    <canvas id="myChart"></canvas>
+  </div>
+</div>
+
+<%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js" %>
+<script>
+    let myChart = null;
+
+    document.getElementById('polynomial-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch('<%= calculate_path %>', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (myChart) myChart.destroy();
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Полином',
+                            data: data.points,
+                            borderColor: '#4a90e2',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { type: 'linear', position: 'bottom' },
+                            y: { type: 'linear' }
+                        }
+                    }
+                });
+            });
+    });
+</script>
+
+<style>
+    .container { max-width: 800px; margin: 2rem auto; padding: 1rem; }
+    .input-group { margin: 1rem 0; }
+    .chart-container { margin-top: 2rem; }
+    canvas { background: #f8f9fa; }
+</style>
