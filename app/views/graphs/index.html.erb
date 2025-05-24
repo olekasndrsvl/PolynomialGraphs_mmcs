@@ -1,5 +1,23 @@
 <div class="container">
-  <h1>Анализ полиномов</h1>
+  <h1>Анализ графиков различных функций</h1>
+
+  <!-- Выбираем конкретный тип функций -->
+  <div id="function-type-select">
+    <h3>Выберите тип рассматриваемых функций:</h3>
+    <div class="choice-buttons">
+      <button type="submit" id="polynomial-type-button" class="choice-polynomial">Полиномиальные</button>
+      <button type="submit" id="trigonometry-type-button" class="choice-trigonometry">Тригонометрические</button>
+    </div>
+  </div>
+
+  <%= form_with id: "trigonometric-form" do |form| %>
+    <div class="input-group">
+      <label>Введите нужную функцию:</label>
+      <input type="text" name="coefficients" placeholder="Пример: sin(52x)" required>
+      <div class="error-message" id="input-error" style="display: none;"></div>
+    </div>
+    <button type="submit">Рассчитать</button>
+  <% end %>
 
   <%= form_with id: "polynomial-form" do |form| %>
     <div class="input-group">
@@ -31,6 +49,22 @@
 
 <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js" %>
 <script>
+    document.getElementById('polynomial-form').style.display = "none";
+    document.getElementById("trigonometric-form").style.display = "none";
+
+    document.getElementById('polynomial-type-button').addEventListener('click', function(){
+        this.classList.add('active');
+        document.getElementById("trigonometry-type-button").classList.remove("active");
+        document.getElementById('polynomial-form').style.display = "block";
+        document.getElementById("trigonometric-form").style.display = "none";
+    });
+
+    document.getElementById('trigonometry-type-button').addEventListener('click', function() {
+        this.classList.add('active');
+        document.getElementById('polynomial-type-button').classList.remove('active');
+        document.getElementById('trigonometric-form').style.display = 'block';
+        document.getElementById('polynomial-form').style.display = 'none';
+    });
     document.getElementById('polynomial-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const input = this.querySelector('input[name="coefficients"]');
@@ -123,6 +157,46 @@
             }
         });
     }
+
+    document.getElementById('trigonometric-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const resultsDiv = document.getElementById('calculations-results');
+        const errorDiv = document.getElementById('server-error');
+        const inputError = document.getElementById('input-error');
+
+        // Сброс состояний
+        resultsDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        inputError.style.display = 'none';
+
+        try {
+            const response = await fetch('<%= trigonometric_calculate_path %>', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Неизвестная ошибка сервера');
+            }
+
+            // Отображение результатов
+            renderChart(data.points);
+            document.getElementById('integral-result').innerHTML =
+              'Для тригонометрических функций интегралы не вычисляются';
+            document.getElementById('definite-integral-result').innerHTML = '';
+
+            resultsDiv.style.display = 'block';
+        } catch (error) {
+            showError(errorDiv, error.message);
+        }
+    });
 
     function showError(container, message) {
         container.textContent = message;
