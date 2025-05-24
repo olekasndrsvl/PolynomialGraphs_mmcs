@@ -32,3 +32,12 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
