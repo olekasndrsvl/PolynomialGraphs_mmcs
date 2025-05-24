@@ -1,64 +1,215 @@
 <div class="container">
-  <h1>Построитель полиномов</h1>
+  <h1>Анализ полиномов</h1>
 
   <%= form_with id: "polynomial-form" do |form| %>
     <div class="input-group">
       <label>Коэффициенты (через запятую):</label>
       <input type="text" name="coefficients" placeholder="Пример: 1,-2,3" required>
+      <div class="error-message" id="input-error" style="display: none;"></div>
     </div>
-    <button type="submit">Построить график</button>
+    <button type="submit">Рассчитать</button>
   <% end %>
 
-  <div class="chart-container">
-    <canvas id="myChart"></canvas>
+  <!-- Блоки для вывода результатов -->
+  <div id="calculations-results" class="mt-4" style="display: none;">
+    <div class="result-box">
+      <h3>График функции:</h3>
+      <div class="chart-container">
+        <canvas id="functionChart"></canvas>
+      </div>
+    </div>
+
+    <div class="result-box">
+      <h3>Результаты интегрирования:</h3>
+      <p id="integral-result" class="result-text"></p>
+      <p id="definite-integral-result" class="result-text"></p>
+    </div>
   </div>
+
+  <div id="server-error" class="error-message" style="display: none;"></div>
 </div>
 
 <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js" %>
 <script>
-    let myChart = null;
-
-    document.getElementById('polynomial-form').addEventListener('submit', function(e) {
+    document.getElementById('polynomial-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
+        const input = this.querySelector('input[name="coefficients"]');
+        const resultsDiv = document.getElementById('calculations-results');
+        const errorDiv = document.getElementById('server-error');
+        const inputError = document.getElementById('input-error');
 
-        fetch('<%= calculate_path %>', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (myChart) myChart.destroy();
+        // Сброс состояний
+        resultsDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        inputError.style.display = 'none';
 
-                const ctx = document.getElementById('myChart').getContext('2d');
-                myChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        datasets: [{
-                            label: 'Полином',
-                            data: data.points,
-                            borderColor: '#4a90e2',
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: { type: 'linear', position: 'bottom' },
-                            y: { type: 'linear' }
-                        }
-                    }
-                });
+        // Валидация ввода
+        const coefficients = input.value.trim();
+        if (!coefficients) {
+            showError(inputError, 'Введите коэффициенты полинома');
+            return;
+        }
+
+        if (!/^[-+]?\d*\.?\d+(?:,\s*[-+]?\d*\.?\d+)*$/.test(coefficients)) {
+            showError(inputError, 'Некорректный формат. Пример: 1,-2.5,3.7');
+            return;
+        }
+
+        try {
+            const response = await fetch('<%= calculate_path %>', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+                }
             });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Неизвестная ошибка сервера');
+            }
+
+            // Отображение результатов
+            renderChart(data.points);
+            document.getElementById('integral-result').innerHTML =
+              `Неопределенный интеграл: <strong>${data.integral}</strong>`;
+            document.getElementById('definite-integral-result').innerHTML =
+              `Определенный интеграл от 1 до 5: <strong>${data.definite}</strong>`;
+
+            resultsDiv.style.display = 'block';
+        } catch (error) {
+            showError(errorDiv, error.message);
+        }
     });
+
+    function renderChart(points) {
+        const ctx = document.getElementById('functionChart').getContext('2d');
+
+        if(window.myChart) {
+            window.myChart.destroy();
+        }
+
+        window.myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Исходная функция',
+                    data: points,
+                    borderColor: '#4a90e2',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { display: true, text: 'X' },
+                        grid: { color: '#eee' }
+                    },
+                    y: {
+                        type: 'linear',
+                        title: { display: true, text: 'Y' },
+                        grid: { color: '#eee' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function showError(container, message) {
+        container.textContent = message;
+        container.style.display = 'block';
+        setTimeout(() => container.style.display = 'none', 5000);
+    }
 </script>
 
 <style>
-    .container { max-width: 800px; margin: 2rem auto; padding: 1rem; }
-    .input-group { margin: 1rem 0; }
-    .chart-container { margin-top: 2rem; }
-    canvas { background: #f8f9fa; }
+    .container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1rem;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .result-box {
+        background: #fff;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+    }
+
+    .result-text {
+        font-size: 1.1rem;
+        margin: 0.5rem 0;
+        color: #2c3e50;
+        line-height: 1.6;
+    }
+
+    .chart-container {
+        height: 400px;
+        margin: 1rem 0;
+        position: relative;
+    }
+
+    .input-group {
+        margin: 1.5rem 0;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+        border-color: #4a90e2;
+        outline: none;
+    }
+
+    button[type="submit"] {
+        background: #4a90e2;
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    button[type="submit"]:hover {
+        background: #357abd;
+        transform: translateY(-1px);
+    }
+
+    button[type="submit"]:active {
+        transform: translateY(0);
+    }
+
+    .error-message {
+        color: #dc3545;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        background: #f8d7da;
+        border-radius: 4px;
+        border: 1px solid #f5c6cb;
+    }
+
+    h1, h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
 </style>
