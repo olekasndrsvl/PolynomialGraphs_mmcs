@@ -65,6 +65,7 @@
         document.getElementById('trigonometric-form').style.display = 'block';
         document.getElementById('polynomial-form').style.display = 'none';
     });
+
     document.getElementById('polynomial-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const input = this.querySelector('input[name="coefficients"]');
@@ -170,33 +171,74 @@
         inputError.style.display = 'none';
 
         try {
+            const formData = new FormData(this);
             const response = await fetch('<%= trigonometric_calculate_path %>', {
                 method: 'POST',
-                body: new FormData(this),
+                body: formData,
                 headers: {
-                    'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
                 }
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                throw new Error(data.error || 'Неизвестная ошибка сервера');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Неизвестная ошибка сервера');
             }
 
+            const data = await response.json();
+
             // Отображение результатов
-            renderChart(data.points);
+            renderChartByTrigonometric(data.points);
             document.getElementById('integral-result').innerHTML =
-              'Для тригонометрических функций интегралы не вычисляются';
-            document.getElementById('definite-integral-result').innerHTML = '';
+              'Неопределенный интеграл: <strong>Не вычисляется для тригонометрических функций</strong>';
+            document.getElementById('definite-integral-result').innerHTML =
+              'Определенный интеграл от 1 до 5: <strong>Не вычисляется для тригонометрических функций</strong>';
 
             resultsDiv.style.display = 'block';
         } catch (error) {
             showError(errorDiv, error.message);
         }
     });
+
+    function renderChartByTrigonometric(points) {
+        const ctx = document.getElementById('functionChart').getContext('2d');
+
+        if(window.myChart) {
+            window.myChart.destroy();
+        }
+
+        const chartData = points.map(point => ({
+            x: point.x,
+            y: point.y
+        }));
+
+        window.myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'График функции',
+                    data: chartData,
+                    borderColor: '#4a90e2',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'center'
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'center'
+                    }
+                }
+            }
+        });
+    }
 
     function showError(container, message) {
         container.textContent = message;

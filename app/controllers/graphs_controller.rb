@@ -3,38 +3,17 @@ class GraphsController < ApplicationController
   end
 
   def trigonometric_calculate
-    trig_function = params[:trig_function]
-    argument = params[:argument].presence || 'x'
-
-    # Безопасная проверка аргумента
-    unless argument.match?(/^[\d\s\.x+\-*\/()]+$/)
-      render json: { error: "Недопустимые символы в аргументе функции" }, status: :bad_request
-      return
-    end
-
-    # Автоматически определяем диапазон x в зависимости от частоты
-    frequency = argument.include?('*x') ? argument.split('*x').first.to_f : 1.0
-    x_range = if frequency > 10
-                # Для высоких частот уменьшаем диапазон
-                step = 0.1 / frequency
-                (-2.0..2.0).step(step).to_a
-              else
-                (-10.0..10.0).step(0.1).to_a
-              end
+    trig_function = params[:coefficients]
+    x_range = (-10.0..10.0).step(0.1).to_a
 
     points = x_range.map do |x|
-      safe_arg = argument.gsub('x', x.to_s)
-      begin
-        calculated_arg = Dentaku::Calculator.new.evaluate(safe_arg) rescue 0
-      rescue
-        calculated_arg = 0
-      end
-
       y = case trig_function
-          when 'sin' then Math.sin(calculated_arg)
-          when 'cos' then Math.cos(calculated_arg)
-          when 'tan' then Math.tan(calculated_arg)
-          when 'ctg' then 1.0 / Math.tan(calculated_arg)
+          when /sin/i then Math.sin(x)
+          when /cos/i then Math.cos(x)
+          when /tan/i then Math.tan(x)
+          when /ctan/i then
+            tan_x = Math.tan(x)
+            tan_x.zero? ? Float::NAN : 1.0 / tan_x
           else 0
           end
 
@@ -43,7 +22,8 @@ class GraphsController < ApplicationController
 
     render json: {
       points: points,
-      label: "#{trig_function}(#{argument})"
+      integral: "Не вычисляется для тригонометрических функций",
+      definite: "Не вычисляется для тригонометрических функций"
     }
   end
 
