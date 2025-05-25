@@ -4,7 +4,18 @@ class GraphsController < ApplicationController
 
   def trigonometric_calculate
     trig_function = params[:coefficients]
-    x_range = (-10.0..10.0).step(0.1).to_a
+
+    x_min = params[:x_min].present? ? params[:x_min].to_f : -10.0
+    x_max = params[:x_max].present? ? params[:x_max].to_f : 10.0
+    # Проверка корректности диапазона только если параметры были переданы
+    if params[:x_min].present? || params[:x_max].present?
+      if x_min >= x_max
+        render json: { error: "Минимальное значение X должно быть меньше максимального" }, status: :bad_request
+        return
+      end
+    end
+
+    x_range = (x_min..x_max).step(0.1).to_a
 
     points = x_range.map do |x|
       y = case trig_function

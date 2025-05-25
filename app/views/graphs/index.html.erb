@@ -16,6 +16,17 @@
       <input type="text" name="coefficients" placeholder="Пример: sin(52x)" required>
       <div class="error-message" id="input-error" style="display: none;"></div>
     </div>
+
+    <div class="input-group range-group">
+      <label>Диапазон X:</label>
+      <div class="range-fields">
+        <span>от</span>
+        <input type="number" name="x_min" placeholder="-10.0" step="0.1" class="range-input">
+        <span>до</span>
+        <input type="number" name="x_max" placeholder="10.0" step="0.1" class="range-input">
+      </div>
+    </div>
+
     <button type="submit">Рассчитать</button>
   <% end %>
 
