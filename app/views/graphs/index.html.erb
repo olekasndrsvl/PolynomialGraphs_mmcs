@@ -13,7 +13,7 @@
   <%= form_with id: "trigonometric-form" do |form| %>
     <div class="input-group">
       <label>Введите нужную функцию:</label>
-      <input type="text" name="coefficients" placeholder="Пример: sin(52x)" required>
+      <input type="text" name="coefficients" placeholder="Примеры: 2sin(3x), cos(2x+1), tan(123x), ctan(42x)" required>
       <div class="error-message" id="input-error" style="display: none;"></div>
     </div>
 
@@ -139,8 +139,6 @@
                 throw new Error(data.error || 'Неизвестная ошибка сервера');
             }
 
-            // Отображение результатов
-            //renderChart(data.points);
             renderChart(data.points, data.y_range);
             document.getElementById('integral-result').innerHTML =
               `Неопределенный интеграл: <strong>${data.integral}</strong>`;
