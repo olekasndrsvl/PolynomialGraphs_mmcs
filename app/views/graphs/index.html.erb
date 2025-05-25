@@ -25,6 +25,29 @@
       <input type="text" name="coefficients" placeholder="Пример: 1,-2,3" required>
       <div class="error-message" id="input-error" style="display: none;"></div>
     </div>
+
+    <div class="input-group range-group">
+      <label>Диапазон X:</label>
+      <div class="range-fields">
+        <span>от</span>
+        <input type="number" name="x_min" placeholder="-10.0" step="0.1" class="range-input">
+        <span>до</span>
+        <input type="number" name="x_max" placeholder="10.0" step="0.1" class="range-input">
+        <span>шаг</span>
+        <input type="number" name="step" placeholder="0.5" step="0.1" min="0.1" class="range-input step-input">
+      </div>
+    </div>
+
+    <div class="input-group range-group">
+      <label>Диапазон Y:</label>
+      <div class="range-fields">
+        <span>от</span>
+        <input type="number" name="y_min" placeholder="Авто" step="0.1" class="range-input">
+        <span>до</span>
+        <input type="number" name="y_max" placeholder="Авто" step="0.1" class="range-input">
+      </div>
+    </div>
+
     <button type="submit">Рассчитать</button>
   <% end %>
 
@@ -106,7 +129,8 @@
             }
 
             // Отображение результатов
-            renderChart(data.points);
+            //renderChart(data.points);
+            renderChart(data.points, data.y_range);
             document.getElementById('integral-result').innerHTML =
               `Неопределенный интеграл: <strong>${data.integral}</strong>`;
             document.getElementById('definite-integral-result').innerHTML =
@@ -118,7 +142,7 @@
         }
     });
 
-    function renderChart(points) {
+    function renderChart(points, yRange = { min: 0, max: null }) {
         const ctx = document.getElementById('functionChart').getContext('2d');
 
         if(window.myChart) {
@@ -149,7 +173,9 @@
                     y: {
                         type: 'linear',
                         title: { display: true, text: 'Y' },
-                        grid: { color: '#eee' }
+                        grid: { color: '#eee' },
+                        min: yRange.min,
+                        max: yRange.max || undefined
                     }
                 },
                 plugins: {
@@ -327,5 +353,60 @@
     h1, h3 {
         color: #2c3e50;
         margin-bottom: 1.5rem;
+    }
+
+    /* Стили для группы диапазона */
+    .range-group {
+        margin: 1.5rem 0;
+    }
+
+    .range-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .range-fields {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .range-fields span {
+        color: #555;
+        font-size: 0.9em;
+    }
+
+    .range-input {
+        padding: 0.6rem;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        width: 80px;
+        transition: border-color 0.3s;
+    }
+
+    .range-input:focus {
+        border-color: #4a90e2;
+        outline: none;
+    }
+
+    .step-input {
+        width: 60px;
+    }
+
+    /* Адаптация для мобильных */
+    @media (max-width: 600px) {
+        .range-fields {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+        }
+
+        .range-input {
+            width: 100%;
+        }
     }
 </style>
