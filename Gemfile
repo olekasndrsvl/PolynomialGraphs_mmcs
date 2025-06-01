@@ -42,6 +42,7 @@ gem "thruster", require: false
 
 
 gem 'polynomial_calculus', path: 'IntegralGem'
+gem 'trigonometric_calculus', path: 'IntegralGem'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

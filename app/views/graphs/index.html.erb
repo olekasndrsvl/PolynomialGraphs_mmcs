@@ -225,9 +225,9 @@
             // Отображение результатов
             renderChartByTrigonometric(data.points);
             document.getElementById('integral-result').innerHTML =
-              'Неопределенный интеграл: <strong>Не вычисляется для тригонометрических функций</strong>';
+              `Неопределенный интеграл: <strong>${data.integral}</strong>`;
             document.getElementById('definite-integral-result').innerHTML =
-              'Определенный интеграл от 1 до 5: <strong>Не вычисляется для тригонометрических функций</strong>';
+              `Определенный интеграл от 1 до 5: <strong>${data.definite}</strong>`;
 
             resultsDiv.style.display = 'block';
         } catch (error) {

@@ -1,7 +1,6 @@
 class GraphsController < ApplicationController
   def index
   end
-
   def trigonometric_calculate
     function_str = params[:coefficients].downcase.strip
 
@@ -13,7 +12,7 @@ class GraphsController < ApplicationController
       return render json: { error: "Минимальное значение X должно быть меньше максимального" }, status: :bad_request
     end
 
-    match = function_str.match(/^(\d*\.?\d*)(sin|cos|tan|ctg|ctan|cot)\((\d*\.?\d*)x([+\-]\d*\.?\d*)?\)$/)
+    match = function_str.match(/^(\d*\.?\d*)(sin|cos|tan|ctg|ctan|cot)\((\d*\.?\d*)x([+\-]\d*\.?\d*)?\)$/i)
 
     unless match
       return render json: {
@@ -27,6 +26,14 @@ class GraphsController < ApplicationController
     inner_coeff = match[3].empty? ? 1.0 : match[3].to_f
     inner_const = match[4] ? match[4].to_f : 0.0
 
+    # Создаем тригонометрическую функцию
+    trig_function = TrigonometricCalculus::TrigonometricFunction.new(
+      coefficient: coefficient,
+      function: func,
+      inner_coefficient: inner_coeff,
+      inner_constant: inner_const
+    )
+
     step = [0.1, 0.5 / inner_coeff.abs].max
     x_range = (x_min..x_max).step(step).to_a
 
@@ -36,7 +43,7 @@ class GraphsController < ApplicationController
           when 'sin' then coefficient * Math.sin(inner_value)
           when 'cos' then coefficient * Math.cos(inner_value)
           when 'tan' then coefficient * Math.tan(inner_value)
-          when 'cot' then
+          when 'cot', 'ctan', 'ctg' then
             tan_val = Math.tan(inner_value)
             tan_val.zero? ? Float::NAN : coefficient / tan_val
           else 0
@@ -47,8 +54,8 @@ class GraphsController < ApplicationController
 
     render json: {
       points: points,
-      integral: "Не вычисляется для тригонометрических функций",
-      definite: "Не вычисляется для тригонометрических функций"
+      integral: trig_function.indefinite_integral,
+      definite: "#{trig_function.definite_integral(x_min, x_max).round(6)}"
     }
   rescue => e
     render json: {
