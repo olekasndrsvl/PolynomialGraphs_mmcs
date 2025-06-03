@@ -66,11 +66,23 @@ class GraphsController < ApplicationController
   end
 
   def calculate
+    coefficients_str = params[:coefficients].to_s.strip
+    if coefficients_str.blank?
+      return render json: { error: "Введите коэффициенты полинома" }, status: :bad_request
+    end
+
+    unless coefficients_str.match?(/^[-+]?\d*\.?\d+(?:\s*,\s*[-+]?\d*\.?\d+)*$/)
+      return render json: { error: "Некорректный формат коэффициентов. Пример: 1, -2.5, 3.7" }, status: :bad_request
+    end
 
     # Создаем полином и вычисляем интегралы
     coefficients = params[:coefficients].split(',').map do |c|
-      Float(c.strip) rescue nil
-    end.compact
+      begin
+        Float(c.strip)
+      rescue ArgumentError
+        raise ArgumentError, "Некорректное число: #{c.strip}"
+      end
+    end
 
     raise ArgumentError, "Введите хотя бы один коэффициент" if coefficients.empty?
     raise ArgumentError, "Недопустимые символы в коэффициентах" if coefficients.any?(&:nil?)

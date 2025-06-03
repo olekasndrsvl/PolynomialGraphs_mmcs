@@ -52,9 +52,6 @@
     <div class="input-group range-group">
       <label>Диапазон Y:</label>
       <div class="range-fields">
-        <span>от</span>
-        <input type="number" name="y_min" placeholder="Авто" step="0.1" class="range-input">
-        <span>до</span>
         <input type="number" name="y_max" placeholder="Авто" step="0.1" class="range-input">
       </div>
     </div>
@@ -112,18 +109,6 @@
         errorDiv.style.display = 'none';
         inputError.style.display = 'none';
 
-        // Валидация ввода
-        const coefficients = input.value.trim();
-        if (!coefficients) {
-            showError(inputError, 'Введите коэффициенты полинома');
-            return;
-        }
-
-        if (!/^[-+]?\d*\.?\d+(?:,\s*[-+]?\d*\.?\d+)*$/.test(coefficients)) {
-            showError(inputError, 'Некорректный формат. Пример: 1,-2.5,3.7');
-            return;
-        }
-
         try {
             const response = await fetch('<%= calculate_path %>', {
                 method: 'POST',
@@ -136,7 +121,9 @@
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Неизвестная ошибка сервера');
+                const errorContainer = data.error.includes('коэффициент') ? inputError : errorDiv;
+                showError(errorContainer, data.error);
+                return;
             }
 
             renderChart(data.points, data.y_range);
