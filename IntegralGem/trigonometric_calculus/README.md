@@ -15,11 +15,10 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ```bash
 gem install triginimetric_calculus
-```
 
 ## Usage
 
-TODO: Write usage instructions here
+Run your code locally, after that you can use your localhost to build graphics in web-browser.
 
 ## Development
 
