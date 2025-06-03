@@ -26,6 +26,13 @@ class GraphsController < ApplicationController
     inner_coeff = match[3].empty? ? 1.0 : match[3].to_f
     inner_const = match[4] ? match[4].to_f : 0.0
 
+    integral_min = params[:integral_min].present? ? params[:integral_min].to_f : 1.0
+    integral_max = params[:integral_max].present? ? params[:integral_max].to_f : 5.0
+
+    if integral_min >= integral_max
+      return render json: { error: "Нижняя граница интеграла должна быть меньше верхней" }, status: :bad_request
+    end
+
     # Создаем тригонометрическую функцию
     trig_function = TrigonometricCalculus::TrigonometricFunction.new(
       coefficient: coefficient,
@@ -55,7 +62,11 @@ class GraphsController < ApplicationController
     render json: {
       points: points,
       integral: trig_function.indefinite_integral,
-      definite: "#{trig_function.definite_integral(x_min, x_max).round(6)}"
+      definite: "#{trig_function.definite_integral(integral_min, integral_max).round(6)}",
+      integral_range: {
+        min: integral_min,
+        max: integral_max
+      }
     }
   rescue => e
     render json: {
@@ -92,6 +103,12 @@ class GraphsController < ApplicationController
     step = params[:step].present? ? params[:step].to_f : 0.5
     y_max = params[:y_max].present? ? params[:y_max].to_f : nil
 
+    integral_min = params[:integral_min].present? ? params[:integral_min].to_f : 1.0
+    integral_max = params[:integral_max].present? ? params[:integral_max].to_f : 5.0
+    if integral_min >= integral_max
+      return render json: { error: "Нижняя граница интеграла должна быть меньше верхней" }, status: :bad_request
+    end
+
     # Проверка корректности диапазона только если параметры были переданы
     if params[:x_min].present? || params[:x_max].present?
       if x_min >= x_max
@@ -110,7 +127,7 @@ class GraphsController < ApplicationController
     # Рассчитываем интегралы
     poly = PolynomialCalculus::Polynomial.new(coefficients)
     indefinite_integral = poly.indefinite_integral
-    definite_value = poly.definite_integral(1, 5) # Можно сделать параметры настраиваемыми
+    definite_value = poly.definite_integral(integral_min, integral_max)
 
     # Готовим данные для графика
     points = x_range.map do |x|
@@ -131,6 +148,10 @@ class GraphsController < ApplicationController
       points: points,
       integral: indefinite_integral.to_s,
       definite: definite_value.round(4),
+      integral_range: {
+        min: integral_min,
+        max: integral_max
+      },
       y_range: {
         min: y_min,
         max: y_max

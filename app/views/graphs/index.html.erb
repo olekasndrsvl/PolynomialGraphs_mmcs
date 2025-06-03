@@ -27,6 +27,16 @@
       </div>
     </div>
 
+    <div class="input-group range-group">
+      <label>Расчитать определенный интеграл:</label>
+      <div class="range-fields">
+        <span>от</span>
+        <input type="number" name="integral_min" placeholder="1" step="0.1" class="range-input">
+        <span>до</span>
+        <input type="number" name="integral_max" placeholder="5" step="0.1" class="range-input">
+      </div>
+    </div>
+
     <button type="submit">Рассчитать</button>
   <% end %>
 
@@ -53,6 +63,16 @@
       <label>Диапазон Y:</label>
       <div class="range-fields">
         <input type="number" name="y_max" placeholder="Авто" step="0.1" class="range-input">
+      </div>
+    </div>
+
+    <div class="input-group range-group">
+      <label>Расчитать определенный интеграл:</label>
+      <div class="range-fields">
+        <span>от</span>
+        <input type="number" name="integral_min" placeholder="1" step="0.1" class="range-input">
+        <span>до</span>
+        <input type="number" name="integral_max" placeholder="5" step="0.1" class="range-input">
       </div>
     </div>
 
@@ -130,7 +150,7 @@
             document.getElementById('integral-result').innerHTML =
               `Неопределенный интеграл: <strong>${data.integral}</strong>`;
             document.getElementById('definite-integral-result').innerHTML =
-              `Определенный интеграл от 1 до 5: <strong>${data.definite}</strong>`;
+              `Определенный интеграл от ${data.integral_range.min} до ${data.integral_range.max}: <strong>${data.definite}</strong>`;
 
             resultsDiv.style.display = 'block';
         } catch (error) {
@@ -214,8 +234,7 @@
             document.getElementById('integral-result').innerHTML =
               `Неопределенный интеграл: <strong>${data.integral}</strong>`;
             document.getElementById('definite-integral-result').innerHTML =
-              `Определенный интеграл от 1 до 5: <strong>${data.definite}</strong>`;
-
+              `Определенный интеграл от ${data.integral_range.min} до ${data.integral_range.max}: <strong>${data.definite}</strong>`;
             resultsDiv.style.display = 'block';
         } catch (error) {
             showError(errorDiv, error.message);
@@ -391,6 +410,20 @@
 
     .step-input {
         width: 60px;
+    }
+
+    .input-group.range-group {
+        margin-bottom: 1rem;
+    }
+
+    .range-fields {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .range-input {
+        width: 80px;
     }
 
     /* Адаптация для мобильных */
