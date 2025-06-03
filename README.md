@@ -1,24 +1,34 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+# PolynomialGraphs
 
-Things you may want to cover:
+PolynomialGraphs is a library which contains two gems - polinomial_calculus and trigonometric_calculus, which can help you to build graphs of polinomial and trigonoimetric (sin, cos, tg, ctg) functions and integrate them.
+It's easy to use it by running on your localhost.
 
-* Ruby version
+# Ruby Version
 
-* System dependencies
+3.3.8
 
-* Configuration
+## Installation
 
-* Database creation
+Install the gem and add to the application's Gemfile by executing:
 
-* Database initialization
+to use polynomial functions:
+```bash
+bundle add polynomial_calculus    
 
-* How to run the test suite
+to use triginimetric functions:
+```bash
+bundle add trigonometric_calculus  
 
-* Services (job queues, cache servers, search engines, etc.)
+If bundler is not being used to manage dependencies, install the gem by executing:
 
-* Deployment instructions
+```bash
+gem install polynomial_calculus
 
-* ...
+```bash
+gem install trigonometric_calculus
+
+## Usage
+
+Run your code locally, after that you can use your localhost to build graphics in web-browser.
