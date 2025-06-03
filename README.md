@@ -1,24 +1,7 @@
-# README
+_________________
+Описание
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+PolynomialGraphs это библиотека языка Ruby, предназначенная для построения графиков функций и их интегрирования.
+Принимает полиномиальные функции, задаваемые коэффицентами, а также тригонометрические функции: sin, cos, tg, ctg.
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+_________________
